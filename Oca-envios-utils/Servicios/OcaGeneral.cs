@@ -1,4 +1,6 @@
 ﻿using Oca.envios.Entidades;
+using Oca.envios.Entidades.Estados;
+using Oca.envios.Entidades.Provincia;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -22,16 +24,15 @@ namespace Oca.envios.Servicios
             this.epak_WebService = "http://webservice.oca.com.ar/epak_tracking/";
         }
         /// <summary>
-        /// Recibe el DataSet de la respuesta de OCA de las sucursales, y la procesa para así obtener la lista de sucursales.
+        /// Recibe el DataSet de la respuesta de OCA de las sucursales, y la procesa para así obtener la lista de la misma.
         /// </summary>
         /// <param name="dataset">Xml de respuesta de Oca, parseado a un Dataset para trabajarlo con más facilidad</param>
         /// <param name="tipo">Filtro que se le quiera agregara a las sucursales</param>
         /// <param name="conCodigosPostalesAcepta">En el caso de que sea TRUE, rellena la lista "CodigosPostalesQueAcepta" de la clase Sucursal, caso contrario, la deja vacia y sin inicializar</param>
-        /// <returns></returns>
+        /// <returns>Lista de sucursales</returns>
         protected List<Sucursal> DataSetToSucursal(DataSet dataset, TipoServicio tipo, bool conCodigosPostalesAcepta = true)
         {
             List<Sucursal> sucursales = new List<Sucursal>();
-            var rows = dataset.Tables[0].Rows;
             for (int i = 0; i < dataset.Tables[0].Rows.Count; i++)
             {
                 Sucursal sucursal = new Sucursal();
@@ -59,6 +60,29 @@ namespace Oca.envios.Servicios
                 }
             }
             return sucursales;
+        }
+        /// <summary>
+        /// Recibe el DataSet de la respuesta de OCA de las provincias, y la procesa para así obtener la lista de la misma.
+        /// </summary>
+        /// <param name="dataset">Xml de respuesta de Oca, parseado a un Dataset para trabajarlo con más facilidad</param>
+        /// <returns>Lista de provincias</returns>
+        protected List<Provincia> DataSetToProvincia(DataSet dataset)
+        {
+            List<Provincia> provincias = new List<Provincia>();
+            for (int i = 0; i < dataset.Tables[0].Rows.Count; i++)
+            {
+                provincias.Add(this.DataRowToProvincia(dataset.Tables[0].Rows[i]));
+            }
+            return provincias;
+        }
+        protected List<EstadoEnvio> DataSetToEstado(DataSet dataset)
+        {
+            List<EstadoEnvio> estados = new List<EstadoEnvio>();
+            for (int i = 0; i < dataset.Tables[0].Rows.Count; i++)
+            {
+                estados.Add(this.DataRowToEstado(dataset.Tables[0].Rows[i]));
+            }
+            return estados;
         }
         /// <summary>
         /// Se encarga de procesar un DataRow que tiene la información de una sucursal de Oca.
@@ -118,6 +142,33 @@ namespace Oca.envios.Servicios
             }
 
             return sucursal;
+        }
+        /// <summary>
+        /// Se encarga de procesar un DataRow que tiene la información de la provincia de Oca.
+        /// </summary>
+        /// <param name="row">DataRow de la información de la provincia de oca</param>
+        /// <returns>Provincia creada a partir del datarow enviado</returns>
+        private Provincia DataRowToProvincia(DataRow row)
+        {
+            Provincia provincia = new Provincia()
+            {
+                Id = Convert.ToInt32(row["IdProvincia"].ToString()),
+                Nombre = row["Descripcion"].ToString().Trim()
+            };
+            return provincia;
+        }
+        private EstadoEnvio DataRowToEstado(DataRow row)
+        {
+            DateTime.TryParse(row["fecha"].ToString(), out DateTime fecha);
+
+            EstadoEnvio estadoEnvio = new EstadoEnvio()
+            {
+                Estado = row["Desdcripcion_Estado"].ToString(),
+                MotivoEstado = row["Descripcion_Motivo"].ToString(),
+                Sucursal = row["SUC"].ToString(),
+                fecha = fecha
+            };
+            return estadoEnvio;
         }
         /// <summary>
         /// Valida si los servicios de la sucursal tienen el TipoServicio enviado

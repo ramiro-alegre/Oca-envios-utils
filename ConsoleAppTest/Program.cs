@@ -5,12 +5,10 @@ namespace ConsoleAppTest
 {
     internal class Program
     {
-        // * Proyecto para testear las metodos de HttpOca.
+        // * Proyecto para testear los metodos de HttpOca.
         static void Main(string[] args)
         {
             HttpOca httpOca = new HttpOca();
-            var test = httpOca.ObtenerSucursalesOca(TipoServicio.VentaEstampillas, true);
-            Console.WriteLine("Total de sucursales: " + test.Count);
         }
     }
 }
